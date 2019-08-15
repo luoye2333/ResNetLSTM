@@ -4,7 +4,7 @@ use ResNet18 to extract features from a series of image,then feed it into the LS
 It can be applied in temporal tasks based on pictures.  
 For example:  
 1.Get the waving frequency of a flag,then tell the local wind speed.  
-*[1] JenniferL.Cardona, MichaelF.Howland, JohnO.Dabiri
+*[1] JenniferL.Cardona, MichaelF.Howland, JohnO.Dabiri.  
 Seeing the Wind: Visual Wind Speed Prediction with a Coupled Convolutional and Recurrent Neural Network  
 See more details at:https://arxiv.org/abs/1905.13290?context=cs.LG*
 
