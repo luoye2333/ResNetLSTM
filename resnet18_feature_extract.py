@@ -14,12 +14,25 @@ class resnet18_feature_extract:
     '''
     def __init__(self):
         self.__net=tv.models.resnet18(pretrained=True)
-        self.__net.eval()#切换到评估模式
+        #加载预训练的模型
+
+        self.__net.eval()
+        #切换到评估模式
+        #因为某些层如批量归一化(batch normalization),dropout等
+        #训练时和测试时目的功能不一样
+        #比如测试时batch size=1,没法进行批量归一化
+
         self.__final_pool=torch.nn.MaxPool2d(3,2)
+        #kernel size,stride
+        #方格大小3x3，步长2
+        #额外增加一层max pooling
+        #去掉多余的0，缩小特征规模
+        #Seeing the wind,P4,第二段
 
     def __img_pr(self,img):
         #图片预处理
         #保证和pytorch resnet18训练时一致
+        #https://github.com/apachecn/pytorch-doc-zh/blob/master/docs/1.0/torchvision_models.md
         transform=tv.transforms.Compose([
             tv.transforms.ToTensor(),
             tv.transforms.Normalize(
@@ -35,7 +48,8 @@ class resnet18_feature_extract:
     def __getfeature(self,input):
         n=self.__net
         pool=self.__final_pool
-        #通过层层传递得到输出
+        #由于去掉fc层比较难
+        #所以从头计算到倒数一步也可以
         with torch.no_grad():
             x=n.conv1(input)
             x=n.bn1(x)
@@ -47,8 +61,8 @@ class resnet18_feature_extract:
             x=n.layer4(x)
             x=pool(x)
         return x
-        #转化为ndarray
-        #return x.data.cpu().numpy()
+        #torch.no_grad()命名空间指定不要计算梯度
+        #节约资源，否则内存消耗量飙升
 
     def GetFeature(self,imgPath):
         img=cv2.imread(imgPath)
@@ -70,9 +84,3 @@ if __name__=='__main__':
     img=img_pr(img)
     print(getfeature(n,img).size())
 
-#也可以通过hook获取
-#但有冗余计算
-#def fhook(self,input,output):
-#    global f
-#    f=output.data.cpu().numpy()
-#n.layer4.register_forward_hook(fhook)
