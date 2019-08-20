@@ -4,7 +4,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>cdf34d78-cf83-4548-9e5d-9edcf0ae71c1</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>ResNetLSTM.py</StartupFile>
+    <StartupFile>
+    </StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -21,14 +22,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="hookmouse.py">
+    <Compile Include="resnetlstm.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="snapshot.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="resnet18_feature_extract.py" />
-    <Compile Include="ResNetLSTM.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
