@@ -42,6 +42,11 @@ class net:
         self.shuffle()
 
     def picRead(self,dirpath=None):
+        '''
+        读取路径dirpath下的样本(文件夹)
+        转化成ndarray
+        放在self.data/label中
+        '''
         if dirpath is None:
             dirpath=os.path.dirname(__file__)+os.sep+'sample'
 
@@ -72,10 +77,18 @@ class net:
         self.label=np.array(label)
 
     def normalize(self):
+        '''
+        转化为torch.tensor
+        图片按照pytorch的预训练参数归一化
+        标签手动除以同一个常数
+
+        会提取和覆盖当前self.data/label
+        '''
         data=self.data
         label=self.label
 
         st=time.time()
+        print('normalization start')
         sampleNum=self.sampleNum
         frames=self.frames
         ndata=torch.zeros(sampleNum,frames,3,224,224)
@@ -92,7 +105,7 @@ class net:
                 img=torch.autograd.Variable(img,requires_grad=True)
                 ndata[s][f]=img
 
-        nlabel=label/15#缩小到0~1
+        nlabel=label/15
         nlabel=torch.Tensor(nlabel)
 
         print('normalization finished,time:{:.2f}s'.format(time.time()-st))
@@ -101,8 +114,12 @@ class net:
         self.label=nlabel
 
     def extractFeature(self):
+        '''
+        将图片数据通过resnet提取特征
+        平铺后放入self.data中
+        '''
         st=time.time()
-
+        print('feature extracting start')
         n=self.cnn
         pool=self.final_pool
         data=self.data
@@ -128,6 +145,9 @@ class net:
         print('feature extracted,time:{:.2f}s'.format(time.time()-st))
 
     def shuffle(self):
+        '''
+        将data和label一起打乱
+        '''
         st=time.time()
         indices=np.arange(self.sampleNum)
         np.random.shuffle(indices)
@@ -136,6 +156,14 @@ class net:
         print('shuffle,time:{:.2f}s'.format(time.time()-st))
         
     def train(self,epochNum=100,batchNum=8,finalLoss=1e-5):
+        '''
+        对数据进行训练
+        如果self.data/label已有数据(不是None)直接读取
+        否则对默认路径:当前路径\\sample\\进行读取
+
+        将数据按比例分成训练集和测试集
+        训练直到完成所有epoch或达到finalLoss以下
+        '''
         if self.data is None:
             self.loadData()
         else:
@@ -200,6 +228,10 @@ class net:
                     break
 
     def eval(self,samplePath):
+        '''
+        对样本进行评估
+        (记得预先载入参数)
+        '''
         self.LSTM.eval()
         self.Linear.eval()
         with torch.no_grad():
@@ -216,7 +248,7 @@ class net:
             print('加载成功')
 
             out,_=self.LSTM(sample)
-            out_last=out[-1,:,:]
+            out_last=out[:,-1,:]#bug fixed:batch first
             pred=self.Linear(out_last)
 
         pred=pred*15
@@ -227,6 +259,9 @@ class net:
         print('pred:{0},truth:{1}'.format(pred,str1))
 
     def load(self,saveName):
+        '''
+        载入存档:当前路径\\save\\saveName
+        '''
         savedir=os.path.dirname(__file__)+os.sep+'save'
         savePath=savedir+os.sep+saveName
         checkpoint = torch.load(savePath)
@@ -235,6 +270,9 @@ class net:
         self.opt.load_state_dict(checkpoint['optimizer'])
 
     def __preprocess(self,img):
+        '''
+        单个图片归一化，仅用在评估中
+        '''
         transform=tv.transforms.Compose([
             tv.transforms.ToTensor(),
             tv.transforms.Normalize(
@@ -245,6 +283,9 @@ class net:
         img=torch.autograd.Variable(img,requires_grad=True)
         return img
     def __getFeature(self,input):
+        '''
+        单个图片提取特征，仅用在评估中
+        '''
         n=self.cnn
         pool=self.final_pool
         with torch.no_grad():
@@ -259,7 +300,44 @@ class net:
             x=pool(x)
         return x
 
+'''
+注意点:
+1.样本文件夹下文件名为
+    o (1).jpg
+    label.txt
+2.注意label归一化时的常数是/15
+3.eval函数中有读取label.txt的操作，如果只是测试可以随便放个label.txt
+
+!!!!!!!!使用时建议使用交互式!!!!!!
+import ResNetLSTM as rnl
+n=rnl.net()#初始化
+n.loadData()#读取数据集
+n.load('2019-08-14-18-38-43.pth')#读取存档
+n.train()#开始训练
+n.eval('Q:\workplace\code\python\ResNetLSTM\eval\\2019-8-29-22-36-2')#测试
+#(注意这里路径的2019前多加了一个斜杠是为了转译数字)
+
+在交互式下可以直接取出读取好的数据
+a,b=n.data,n.label在另一模型使用
+
+更改代码后需要重新加载
+import importlib
+importlib.reload(rnl)
+n.data,n.label=a,b
+'''
 if __name__=='__main__':
     n=net()
     n.loadData()
     n.train()
+
+'''
+附:
+图片切割可用同目录下的image_preprocess.py
+注意：居中切割成224x224，小于224x224没有测试过
+import image_preprocess as ip
+a=ip.processor()
+import cv2.cv2 as cv2
+img=cv2.imread('o (1).jpg')
+img=a.adjust(img)
+cv2.imwrite('123.jpg',img)
+'''
