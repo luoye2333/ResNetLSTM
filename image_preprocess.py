@@ -58,30 +58,3 @@ if __name__=='__main__':
     cv2.imshow('abc',img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
-
-'''
-img=cv2.imread('1.jpg')
-width=img.shape[1]
-height=img.shape[0]
-print('width:{0},height:{1}'.format(width,height))
-img=cv2.resize(img,(224,224))
-cv2.imwrite('1n.jpg',img)
-cv2.imshow('abc',img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
-gray_img=cv2.imread('1.png',cv2.IMREAD_GRAYSCALE)
-#https://docs.opencv.org/3.1.0/d4/da8/group__imgcodecs.html
-#BGR
-
-
-img=cv2.rectangle(img,(50,300),(200,400),(255,0,0))
-
-font=cv2.FONT_HERSHEY_SIMPLEX
-font_size=1.2
-penwidth=2
-outimg=cv2.putText(img,"123%",(200,100),
-            font,font_size,
-            (0,255,0),penwidth)
-'''
